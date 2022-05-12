@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Flutter >=2.12.0
+
 ## 0.0.5
 
 * Fix README syntax

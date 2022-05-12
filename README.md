@@ -1,12 +1,27 @@
 # flutter_pty
 
-A new Flutter FFI plugin project.
+This package is experimental and only tested on MacOS.
 
-## Getting Started
+| Linux | macOS | Windows | Android |
+| :---: | :---: | :-----: | :-----: |
+|  ✔️?   |   ✔️   |   WIP   |   ✔️?    |
 
-This project is a starting point for a Flutter 
-[FFI plugin](https://docs.flutter.dev/development/platform-integration/c-interop),
-a specialized package that includes native code directly invoked with Dart FFI.
+## Quick start:
+
+```dart
+import 'package:flutter_pty/flutter_pty.dart';
+
+final pty = Pty.start('bash');
+
+pty.stdout.listen((data) => ...);
+
+pty.write(Utf8Encoder().convert('ls -al\n'));
+
+pty.resize(30, 80);
+
+pty.kill();
+
+---
 
 ## Project stucture
 

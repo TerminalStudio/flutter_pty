@@ -371,19 +371,19 @@ class FlutterPtyBindings {
   set Dart_ExitScope_DL(Dart_ExitScope_Type value) =>
       _Dart_ExitScope_DL.value = value;
 
-  void read_loop(
-    ffi.Pointer<ReadThreadOptions> options,
+  ffi.Pointer<ffi.Void> read_loop(
+    ffi.Pointer<ffi.Void> arg,
   ) {
     return _read_loop(
-      options,
+      arg,
     );
   }
 
   late final _read_loopPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ReadThreadOptions>)>>('read_loop');
-  late final _read_loop =
-      _read_loopPtr.asFunction<void Function(ffi.Pointer<ReadThreadOptions>)>();
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>>('read_loop');
+  late final _read_loop = _read_loopPtr
+      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
   void start_read_thread(
     int fd,
@@ -400,6 +400,21 @@ class FlutterPtyBindings {
           'start_read_thread');
   late final _start_read_thread =
       _start_read_threadPtr.asFunction<void Function(int, int)>();
+
+  void set_environment(
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> environment,
+  ) {
+    return _set_environment(
+      environment,
+    );
+  }
+
+  late final _set_environmentPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('set_environment');
+  late final _set_environment = _set_environmentPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
 
   ffi.Pointer<PtyHandle> pty_create(
     ffi.Pointer<PtyOptions> options,
@@ -434,6 +449,25 @@ class FlutterPtyBindings {
               ffi.Int32)>>('pty_write');
   late final _pty_write = _pty_writePtr.asFunction<
       void Function(ffi.Pointer<PtyHandle>, ffi.Pointer<ffi.Int8>, int)>();
+
+  int pty_resize(
+    ffi.Pointer<PtyHandle> handle,
+    int rows,
+    int cols,
+  ) {
+    return _pty_resize(
+      handle,
+      rows,
+      cols,
+    );
+  }
+
+  late final _pty_resizePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<PtyHandle>, ffi.Int32, ffi.Int32)>>('pty_resize');
+  late final _pty_resize = _pty_resizePtr
+      .asFunction<int Function(ffi.Pointer<PtyHandle>, int, int)>();
 }
 
 typedef Dart_PostCObject_Type = ffi.Pointer<
@@ -731,7 +765,7 @@ class PtyHandle extends ffi.Struct {
   external int pid;
 }
 
-class ReadThreadOptions extends ffi.Struct {
+class ReadLoopOptions extends ffi.Struct {
   @ffi.Int32()
   external int fd;
 

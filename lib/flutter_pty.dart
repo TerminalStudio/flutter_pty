@@ -124,6 +124,10 @@ class Pty {
     malloc.free(buf);
   }
 
+  void resize(int rows, int cols) {
+    _bindings.pty_resize(_handle, rows, cols);
+  }
+
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     return Process.killPid(pid, signal);
   }

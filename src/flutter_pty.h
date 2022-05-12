@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <util.h>
+#include <sys/ioctl.h>
 #endif
 
 #if _WIN32
@@ -165,4 +166,14 @@ PtyHandle *pty_create(PtyOptions *options)
 void pty_write(PtyHandle *handle, char *buffer, int length)
 {
     write(handle->ptm, buffer, length);
+}
+
+int pty_resize(PtyHandle *handle, int rows, int cols)
+{
+    struct winsize ws;
+
+    ws.ws_row = rows;
+    ws.ws_col = cols;
+
+    return ioctl(handle->ptm, TIOCSWINSZ, &ws);
 }

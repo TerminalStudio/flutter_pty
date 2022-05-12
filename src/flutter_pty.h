@@ -119,7 +119,7 @@ PtyHandle *pty_create(PtyOptions *options)
 
     if (pid == 0)
     {
-        int ok = execvp(options->executable, NULL);
+        int ok = execvp(options->executable, options->arguments);
 
         if (ok < 0)
         {

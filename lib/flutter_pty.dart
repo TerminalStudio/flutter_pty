@@ -50,14 +50,14 @@ class Pty {
     // Without this, tools like "vi" produce sequences that are not UTF-8 friendly
     effectiveEnv['LANG'] = 'en_US.UTF-8';
 
-    const envValuesToCopy = [
+    const envValuesToCopy = {
       'LOGNAME',
       'USER',
       'DISPLAY',
       'LC_TYPE',
       'HOME',
       'PATH'
-    ];
+    };
 
     for (var entry in Platform.environment.entries) {
       if (envValuesToCopy.contains(entry.key)) {

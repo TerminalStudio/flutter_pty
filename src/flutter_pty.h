@@ -49,16 +49,18 @@ typedef struct PtyHandle
 
 } PtyHandle;
 
-typedef struct ReadThreadOptions
+typedef struct ReadLoopOptions
 {
     int fd;
 
     Dart_Port port;
 
-} ReadThreadOptions;
+} ReadLoopOptions;
 
-void read_loop(ReadThreadOptions *options)
+static void *read_loop(void *arg)
 {
+    ReadLoopOptions *options = (ReadLoopOptions *)arg;
+
     char buffer[1024];
 
     while (1)
@@ -84,12 +86,14 @@ void read_loop(ReadThreadOptions *options)
 
         Dart_PostCObject_DL(options->port, &result);
     }
+
+    return NULL;
 }
 
-void start_read_thread(int fd, Dart_Port port)
+static void start_read_thread(int fd, Dart_Port port)
 {
 
-    ReadThreadOptions *options = malloc(sizeof(ReadThreadOptions));
+    ReadLoopOptions *options = malloc(sizeof(ReadLoopOptions));
 
     options->fd = fd;
 
@@ -98,6 +102,23 @@ void start_read_thread(int fd, Dart_Port port)
     pthread_t _thread;
 
     pthread_create(&_thread, NULL, &read_loop, options);
+}
+
+static void set_environment(char **environment)
+{
+    putenv("APPLE=pi");
+
+    if (environment == NULL)
+    {
+        return;
+    }
+
+    while (*environment != NULL)
+    {
+        printf("env: %s\n", *environment);
+        putenv(*environment);
+        environment++;
+    }
 }
 
 PtyHandle *pty_create(PtyOptions *options)
@@ -119,6 +140,8 @@ PtyHandle *pty_create(PtyOptions *options)
 
     if (pid == 0)
     {
+        set_environment(options->environment);
+
         int ok = execvp(options->executable, options->arguments);
 
         if (ok < 0)

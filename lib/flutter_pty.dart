@@ -80,20 +80,19 @@ class Pty {
     argv.elementAt(arguments.length + 1).value = nullptr;
 
     //build env
-    final env = calloc<Pointer<Utf8>>(effectiveEnv.length + 1);
+    final envp = calloc<Pointer<Utf8>>(effectiveEnv.length + 1);
     for (var i = 0; i < effectiveEnv.length; i++) {
       final entry = effectiveEnv.entries.elementAt(i);
-      env.elementAt(i).value = entry.key.toNativeUtf8();
-      env.elementAt(i + 1).value = entry.value.toNativeUtf8();
+      envp.elementAt(i).value = '${entry.key}=${entry.value}'.toNativeUtf8();
     }
-    env.elementAt(effectiveEnv.length).value = nullptr;
+    envp.elementAt(effectiveEnv.length).value = nullptr;
 
     final options = calloc<PtyOptions>();
     options.ref.rows = rows;
     options.ref.cols = columns;
     options.ref.executable = executable.toNativeUtf8().cast();
     options.ref.arguments = argv.cast();
-    options.ref.environment = env.cast();
+    options.ref.environment = envp.cast();
     options.ref.stdout_port = _stdoutPort.sendPort.nativePort;
     options.ref.exit_port = _exitPort.sendPort.nativePort;
 

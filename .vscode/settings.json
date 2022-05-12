@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "flutter_pty.h": "c",
+        "__config": "c",
+        "chrono": "c"
+    }
+}

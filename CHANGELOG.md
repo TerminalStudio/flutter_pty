@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Fix README syntax
+
 ## 0.0.4
 
 * Support resizing of the pty

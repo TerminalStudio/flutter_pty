@@ -1,6 +1,7 @@
 ## 0.1.0
 
 * Windows support.
+* Support getting exit code
 
 ## 0.0.7
 

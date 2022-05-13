@@ -4,6 +4,10 @@
 #define FFI_PLUGIN_EXPORT
 #endif
 
+#if defined(__linux__) || defined(__GLIBC__) || defined(__GNU__)
+#define _GNU_SOURCE /* GNU glibc grantpt() prototypes */
+#endif
+
 typedef struct PtyOptions PtyOptions;
 
 typedef struct PtyHandle PtyHandle;

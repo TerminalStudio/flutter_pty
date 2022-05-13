@@ -14,7 +14,8 @@ pid_t pty_forkpty(
     const struct termios *termp,
     const struct winsize *winp)
 {
-    int ptm = open("/dev/ptmx", O_RDWR);
+    int ptm = open("/dev/ptmx", O_NOCTTY | O_RDWR);
+
     if (ptm < 0)
     {
         return -1;
@@ -22,9 +23,14 @@ pid_t pty_forkpty(
 
     fcntl(ptm, F_SETFD, FD_CLOEXEC);
 
+    if (grantpt(ptm) || unlockpt(ptm))
+    {
+        return -1;
+    }
+
     char *devname;
 
-    if (grantpt(ptm) || unlockpt(ptm) || ((devname = (char *)ptsname(ptm)) == 0))
+    if ((devname = ptsname(ptm)) == NULL)
     {
         return -1;
     }

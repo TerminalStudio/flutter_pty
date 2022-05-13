@@ -7,7 +7,7 @@ This package is experimental. Use it with care.
 
 | Linux | macOS | Windows | Android |
 | :---: | :---: | :-----: | :-----: |
-|   ✔️   |   ✔️   |   ✔️   |    ✔️    |
+|   ✔️   |   ✔️   |    ✔️    |    ✔️    |
 
 ## Quick start
 
@@ -16,7 +16,7 @@ import 'package:flutter_pty/flutter_pty.dart';
 
 final pty = Pty.start('bash');
 
-pty.stdout.listen((data) => ...);
+pty.output.listen((data) => ...);
 
 pty.write(Utf8Encoder().convert('ls -al\n'));
 

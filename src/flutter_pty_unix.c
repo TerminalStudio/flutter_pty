@@ -8,12 +8,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#if __APPLE__
-#include <util.h>
-#else
-#include <pty.h>
-#endif
-
+#include "forkpty.h"
 #include "flutter_pty.h"
 
 #include "include/dart_api.h"

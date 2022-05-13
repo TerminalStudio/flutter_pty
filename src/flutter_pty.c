@@ -5,5 +5,6 @@
 #if _WIN32
 #include "flutter_pty_win.c"
 #else
+#include "forkpty.c"
 #include "flutter_pty_unix.c"
 #endif

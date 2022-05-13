@@ -15,7 +15,3 @@ set_target_properties(flutter_pty PROPERTIES
 )
 
 target_compile_definitions(flutter_pty PUBLIC DART_SHARED_LIB)
-
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  target_link_libraries(flutter_pty -lutil)
-endif()

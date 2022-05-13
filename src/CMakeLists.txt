@@ -6,8 +6,7 @@ cmake_minimum_required(VERSION 3.10)
 project(flutter_pty_library VERSION 0.0.1 LANGUAGES C)
 
 add_library(flutter_pty SHARED
-  "include/dart_api_dl.c"
-  "flutter_pty.cc"
+  "flutter_pty.c"
 )
 
 set_target_properties(flutter_pty PROPERTIES
@@ -16,3 +15,7 @@ set_target_properties(flutter_pty PROPERTIES
 )
 
 target_compile_definitions(flutter_pty PUBLIC DART_SHARED_LIB)
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  target_link_libraries(flutter_pty -lutil)
+endif()

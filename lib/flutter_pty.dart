@@ -102,6 +102,10 @@ class Pty {
 
     _handle = _bindings.pty_create(options);
 
+    if (_handle == nullptr) {
+      throw StateError('Failed to create PTY');
+    }
+
     calloc.free(options);
   }
 

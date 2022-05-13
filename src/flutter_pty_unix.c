@@ -15,26 +15,6 @@
 #include "include/dart_api_dl.h"
 #include "include/dart_native_api.h"
 
-typedef struct PtyOptions
-{
-    int rows;
-
-    int cols;
-
-    char *executable;
-
-    char **arguments;
-
-    char **environment;
-
-    char *working_directory;
-
-    Dart_Port stdout_port;
-
-    Dart_Port exit_port;
-
-} PtyOptions;
-
 typedef struct PtyHandle
 {
     int ptm;
@@ -165,4 +145,9 @@ FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols)
     ws.ws_col = cols;
 
     return ioctl(handle->ptm, TIOCSWINSZ, &ws);
+}
+
+FFI_PLUGIN_EXPORT char *pty_error()
+{
+    return NULL;
 }

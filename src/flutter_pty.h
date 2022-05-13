@@ -1,3 +1,6 @@
+#ifndef FLUTTER_PTY_H_
+#define FLUTTER_PTY_H_
+
 #if _WIN32
 #define FFI_PLUGIN_EXPORT __declspec(dllexport)
 #else
@@ -8,7 +11,27 @@
 #define _GNU_SOURCE /* GNU glibc grantpt() prototypes */
 #endif
 
-typedef struct PtyOptions PtyOptions;
+#include "include/dart_api.h"
+
+typedef struct PtyOptions
+{
+    int rows;
+
+    int cols;
+
+    char *executable;
+
+    char **arguments;
+
+    char **environment;
+
+    char *working_directory;
+
+    Dart_Port stdout_port;
+
+    Dart_Port exit_port;
+
+} PtyOptions;
 
 typedef struct PtyHandle PtyHandle;
 
@@ -17,3 +40,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options);
 FFI_PLUGIN_EXPORT void pty_write(PtyHandle *handle, char *buffer, int length);
 
 FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols);
+
+FFI_PLUGIN_EXPORT char *pty_error();
+
+#endif

@@ -103,7 +103,7 @@ class Pty {
     _handle = _bindings.pty_create(options);
 
     if (_handle == nullptr) {
-      throw StateError('Failed to create PTY');
+      throw StateError('Failed to create PTY: ${getPtyError()}');
     }
 
     calloc.free(options);
@@ -119,7 +119,7 @@ class Pty {
 
   Future<int> get exitCode => _exitPort.first.then((value) => value);
 
-  int get pid => _handle.ref.pid;
+  int get pid => _bindings.pty_getpid(_handle);
 
   void write(Uint8List data) {
     final buf = malloc<Int8>(data.length);
@@ -135,4 +135,14 @@ class Pty {
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     return Process.killPid(pid, signal);
   }
+}
+
+String? getPtyError() {
+  final error = _bindings.pty_error();
+
+  if (error == nullptr) {
+    return null;
+  }
+
+  return error.cast<Utf8>().toDartString();
 }

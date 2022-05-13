@@ -11,7 +11,7 @@
 #define _GNU_SOURCE /* GNU glibc grantpt() prototypes */
 #endif
 
-#include "include/dart_api.h"
+#include "include/dart_api_dl.h"
 
 typedef struct PtyOptions
 {
@@ -41,6 +41,8 @@ FFI_PLUGIN_EXPORT void pty_write(PtyHandle *handle, char *buffer, int length);
 
 FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols);
 
-FFI_PLUGIN_EXPORT char *pty_error();
+FFI_PLUGIN_EXPORT int pty_getpid(PtyHandle *handle);
+
+FFI_PLUGIN_EXPORT char *pty_error(void);
 
 #endif

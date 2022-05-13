@@ -371,51 +371,6 @@ class FlutterPtyBindings {
   set Dart_ExitScope_DL(Dart_ExitScope_Type value) =>
       _Dart_ExitScope_DL.value = value;
 
-  ffi.Pointer<ffi.Void> read_loop(
-    ffi.Pointer<ffi.Void> arg,
-  ) {
-    return _read_loop(
-      arg,
-    );
-  }
-
-  late final _read_loopPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>>('read_loop');
-  late final _read_loop = _read_loopPtr
-      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
-
-  void start_read_thread(
-    int fd,
-    int port,
-  ) {
-    return _start_read_thread(
-      fd,
-      port,
-    );
-  }
-
-  late final _start_read_threadPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int32, Dart_Port)>>(
-          'start_read_thread');
-  late final _start_read_thread =
-      _start_read_threadPtr.asFunction<void Function(int, int)>();
-
-  void set_environment(
-    ffi.Pointer<ffi.Pointer<ffi.Int8>> environment,
-  ) {
-    return _set_environment(
-      environment,
-    );
-  }
-
-  late final _set_environmentPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(
-              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('set_environment');
-  late final _set_environment = _set_environmentPtr
-      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
-
   ffi.Pointer<PtyHandle> pty_create(
     ffi.Pointer<PtyOptions> options,
   ) {
@@ -468,6 +423,30 @@ class FlutterPtyBindings {
               ffi.Pointer<PtyHandle>, ffi.Int32, ffi.Int32)>>('pty_resize');
   late final _pty_resize = _pty_resizePtr
       .asFunction<int Function(ffi.Pointer<PtyHandle>, int, int)>();
+
+  int pty_getpid(
+    ffi.Pointer<PtyHandle> handle,
+  ) {
+    return _pty_getpid(
+      handle,
+    );
+  }
+
+  late final _pty_getpidPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<PtyHandle>)>>(
+          'pty_getpid');
+  late final _pty_getpid =
+      _pty_getpidPtr.asFunction<int Function(ffi.Pointer<PtyHandle>)>();
+
+  ffi.Pointer<ffi.Int8> pty_error() {
+    return _pty_error();
+  }
+
+  late final _pty_errorPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Int8> Function()>>(
+          'pty_error');
+  late final _pty_error =
+      _pty_errorPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
 }
 
 typedef Dart_PostCObject_Type = ffi.Pointer<
@@ -757,18 +736,4 @@ class PtyOptions extends ffi.Struct {
   external int exit_port;
 }
 
-class PtyHandle extends ffi.Struct {
-  @ffi.Int32()
-  external int ptm;
-
-  @ffi.Int32()
-  external int pid;
-}
-
-class ReadLoopOptions extends ffi.Struct {
-  @ffi.Int32()
-  external int fd;
-
-  @Dart_Port()
-  external int port;
-}
+class PtyHandle extends ffi.Opaque {}

@@ -147,6 +147,11 @@ FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols)
     return ioctl(handle->ptm, TIOCSWINSZ, &ws);
 }
 
+FFI_PLUGIN_EXPORT int pty_getpid(PtyHandle *handle)
+{
+    return handle->pid;
+}
+
 FFI_PLUGIN_EXPORT char *pty_error()
 {
     return NULL;

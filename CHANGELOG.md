@@ -1,3 +1,8 @@
+## 0.0.7
+
+* Work on Linux #1
+* Work on Android
+
 ## 0.0.6
 
 * Flutter >=2.12.0

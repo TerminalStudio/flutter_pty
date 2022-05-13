@@ -1,6 +1,6 @@
 name: flutter_pty
 description: Pty for Flutter. Provides the ability to create processes with pseudo terminal file descriptors.
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/TerminalStudio/flutter_pty
 
 environment:

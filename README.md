@@ -1,10 +1,10 @@
 # flutter_pty
 
-This package is experimental and only tested on MacOS.
+This package is experimental and does not work on Windows yet.
 
 | Linux | macOS | Windows | Android |
 | :---: | :---: | :-----: | :-----: |
-|  ✔️?   |   ✔️   |   WIP   |   ✔️?    |
+|   ✔️   |   ✔️   |   WIP   |    ✔️    |
 
 ## Quick start:
 

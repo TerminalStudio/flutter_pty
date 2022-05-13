@@ -1,3 +1,7 @@
+## 0.1.0
+
+* Windows support.
+
 ## 0.0.7
 
 * Work on Linux #1

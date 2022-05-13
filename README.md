@@ -1,6 +1,8 @@
 # flutter_pty
 
-This package is experimental. Use it with care.
+This is an experimental package to explore the possibilities of using native
+code to implement PTY instead of pure FFI and blocking isolates. It's expected to be
+more stable than the current implementation ([pty](https://pub.dev/packages/pty)).
 
 ## Platform
 

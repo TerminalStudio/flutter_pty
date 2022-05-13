@@ -1,12 +1,15 @@
 # flutter_pty
 
-This package is experimental and does not work on Windows yet.
+This package is experimental. Use it with care.
+
+## Platform
+
 
 | Linux | macOS | Windows | Android |
 | :---: | :---: | :-----: | :-----: |
-|   ✔️   |   ✔️   |   WIP   |    ✔️    |
+|   ✔️   |   ✔️   |   ✔️   |    ✔️    |
 
-## Quick start:
+## Quick start
 
 ```dart
 import 'package:flutter_pty/flutter_pty.dart';

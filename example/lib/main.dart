@@ -36,6 +36,10 @@ class _MyAppState extends State<MyApp> {
       ptyOutout.write(text);
       setState(() {});
     });
+
+    pty.exitCode.then((code) {
+      ptyOutout.writeln('the process exited with exit code $code');
+    });
   }
 
   @override
@@ -63,17 +67,20 @@ class _MyAppState extends State<MyApp> {
                   border: InputBorder.none,
                 ),
                 controller: textEdit,
-                onSubmitted: (text) {
-                  pty.write(const Utf8Encoder().convert('$text\n'));
-                  textEdit.clear();
-                  focusNode.requestFocus();
-                },
+                onSubmitted: onEnter,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void onEnter(String text) {
+    final carriageReturn = Platform.isWindows ? '\r\n' : '\n';
+    pty.write(const Utf8Encoder().convert(text + carriageReturn));
+    textEdit.clear();
+    focusNode.requestFocus();
   }
 }
 

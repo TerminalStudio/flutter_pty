@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <Windows.h>
 
 #include "flutter_pty.h"
@@ -8,7 +9,6 @@
 
 static LPWSTR build_command(char *executable, char **arguments)
 {
-    LPWSTR command = NULL;
     int command_length = 0;
 
     if (executable != NULL)
@@ -22,12 +22,12 @@ static LPWSTR build_command(char *executable, char **arguments)
 
         while (arguments[i] != NULL)
         {
-            command_length += (int)strlen(arguments[i]);
+            command_length += (int)strlen(arguments[i]) + 1;
             i++;
         }
     }
 
-    command = malloc((command_length + 1) * sizeof(WCHAR));
+    LPWSTR command = malloc((command_length + 1) * sizeof(WCHAR));
 
     if (command != NULL)
     {
@@ -51,6 +51,8 @@ static LPWSTR build_command(char *executable, char **arguments)
 
             while (arguments[j] != NULL)
             {
+                command[i++] = ' ';
+
                 int k = 0;
 
                 while (arguments[j][k] != 0)
@@ -156,7 +158,7 @@ typedef struct ReadLoopOptions
 
 } ReadLoopOptions;
 
-static DWORD *read_loop(LPVOID arg)
+static DWORD WINAPI read_loop(LPVOID arg)
 {
     ReadLoopOptions *options = (ReadLoopOptions *)arg;
 
@@ -187,10 +189,10 @@ static DWORD *read_loop(LPVOID arg)
         Dart_PostCObject_DL(options->port, &result);
     }
 
-    return NULL;
+    return 0;
 }
 
-static void start_read_thread(int fd, Dart_Port port)
+static void start_read_thread(HANDLE fd, Dart_Port port)
 {
     ReadLoopOptions *options = malloc(sizeof(ReadLoopOptions));
 
@@ -200,6 +202,48 @@ static void start_read_thread(int fd, Dart_Port port)
     DWORD thread_id;
 
     HANDLE thread = CreateThread(NULL, 0, read_loop, options, 0, &thread_id);
+
+    if (thread == NULL)
+    {
+        free(options);
+    }
+}
+
+typedef struct WaitExitOptions
+{
+    HANDLE pid;
+
+    Dart_Port port;
+
+} WaitExitOptions;
+
+static DWORD WINAPI wait_exit_thread(LPVOID arg)
+{
+    WaitExitOptions *options = (WaitExitOptions *)arg;
+
+    DWORD exit_code = 0;
+
+    WaitForSingleObject(options->pid, INFINITE);
+
+    GetExitCodeProcess(options->pid, &exit_code);
+
+    CloseHandle(options->pid);
+
+    Dart_PostInteger_DL(options->port, exit_code);
+
+    return 0;
+}
+
+static void start_wait_exit_thread(HANDLE pid, Dart_Port port)
+{
+    WaitExitOptions *options = malloc(sizeof(WaitExitOptions));
+
+    options->pid = pid;
+    options->port = port;
+
+    DWORD thread_id;
+
+    HANDLE thread = CreateThread(NULL, 0, wait_exit_thread, options, 0, &thread_id);
 
     if (thread == NULL)
     {
@@ -223,11 +267,11 @@ char *error_message = NULL;
 
 FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 {
-    PHANDLE inputReadSide = NULL;
-    PHANDLE inputWriteSide = NULL;
+    HANDLE inputReadSide = NULL;
+    HANDLE inputWriteSide = NULL;
 
-    PHANDLE outputReadSide = NULL;
-    PHANDLE outputWriteSide = NULL;
+    HANDLE outputReadSide = NULL;
+    HANDLE outputWriteSide = NULL;
 
     if (!CreatePipe(&inputReadSide, &inputWriteSide, NULL, 0))
     {
@@ -246,7 +290,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     size.X = options->cols;
     size.Y = options->rows;
 
-    HPCON *hPty;
+    HPCON hPty;
 
     HRESULT result = CreatePseudoConsole(size, inputReadSide, outputWriteSide, 0, &hPty);
 
@@ -256,14 +300,17 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
         return NULL;
     }
 
-    STARTUPINFOEXW startupInfo;
+    STARTUPINFOEX startupInfo;
+
+    ZeroMemory(&startupInfo, sizeof(startupInfo));
     startupInfo.StartupInfo.cb = sizeof(startupInfo);
+
     startupInfo.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
     startupInfo.StartupInfo.hStdInput = NULL;
     startupInfo.StartupInfo.hStdOutput = NULL;
     startupInfo.StartupInfo.hStdError = NULL;
 
-    PSIZE_T bytesRequired;
+    SIZE_T bytesRequired;
     InitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
     startupInfo.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)malloc(bytesRequired);
 
@@ -275,13 +322,13 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
         return NULL;
     }
 
-    ok = UpdateProcThreadAttribute(
-        startupInfo.lpAttributeList,
-        0,
-        PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-        hPty,
-        sizeof(HPCON),
-        NULL, NULL);
+    ok = UpdateProcThreadAttribute(startupInfo.lpAttributeList,
+                                   0,
+                                   PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+                                   hPty,
+                                   sizeof(hPty),
+                                   NULL,
+                                   NULL);
 
     if (!ok)
     {
@@ -289,7 +336,6 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
         return NULL;
     }
 
-    // compose command
     LPWSTR command = build_command(options->executable, options->arguments);
 
     LPWSTR environment_block = build_environment(options->environment);
@@ -297,35 +343,52 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     LPWSTR working_directory = build_working_directory(options->working_directory);
 
     PROCESS_INFORMATION processInfo;
+    ZeroMemory(&processInfo, sizeof(processInfo));
 
-    ok = CreateProcessW(
-        NULL,
-        command,
-        NULL,
-        NULL,
-        FALSE,
-        EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
-        // options->environment,
-        NULL,
-        NULL,
-        &startupInfo.StartupInfo,
-        &processInfo);
+    Sleep(1000);
+
+    ok = CreateProcessW(NULL,
+                        command,
+                        NULL,
+                        NULL,
+                        FALSE,
+                        EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
+                        // options->environment,
+                        NULL,
+                        NULL,
+                        &startupInfo.StartupInfo,
+                        &processInfo);
+
+    if (command != NULL)
+    {
+        free(command);
+    }
+
+    if (environment_block != NULL)
+    {
+        free(environment_block);
+    }
+
+    if (working_directory != NULL)
+    {
+        free(working_directory);
+    }
 
     if (!ok)
     {
         error_message = "Failed to create process";
+        DWORD error = GetLastError();
+        printf("error no: %d\n", error);
         return NULL;
     }
-
-    free(command);
-
-    free(environment_block);
-
-    free(working_directory);
 
     // free(startupInfo.lpAttributeList);
 
     // CloseHandle(processInfo.hThread);
+
+    start_read_thread(outputReadSide, options->stdout_port);
+
+    start_wait_exit_thread(processInfo.hProcess, options->exit_port);
 
     PtyHandle *pty = malloc(sizeof(PtyHandle));
 
@@ -337,7 +400,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     pty->inputWriteSide = inputWriteSide;
     pty->outputReadSide = outputReadSide;
-    pty->hPty = *hPty;
+    pty->hPty = hPty;
     pty->hProcess = processInfo.hProcess;
 
     return pty;
@@ -361,7 +424,7 @@ FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols)
     size.X = cols;
     size.Y = rows;
 
-    return SetConsoleScreenBufferSize(handle->hPty, size);
+    return ResizePseudoConsole(handle->hPty, size);
 }
 
 FFI_PLUGIN_EXPORT char *pty_error()

@@ -33,10 +33,19 @@ void _ensureInitialized() {
   }
 }
 
+/// Pty represents a process running in a pseudo-terminal.
+///
+/// To create a Pty, use [Pty.start].
 class Pty {
+  final String executable;
+
+  final List<String> arguments;
+
+  /// Spawns a process in a pseudo-terminal. The arguments have the same meaning
+  /// as in [Process.start].
   Pty.start(
-    String executable, {
-    List<String> arguments = const [],
+    this.executable, {
+    this.arguments = const [],
     String? workingDirectory,
     Map<String, String>? environment,
     int rows = 25,
@@ -103,7 +112,7 @@ class Pty {
     _handle = _bindings.pty_create(options);
 
     if (_handle == nullptr) {
-      throw StateError('Failed to create PTY: ${getPtyError()}');
+      throw StateError('Failed to create PTY: ${_getPtyError()}');
     }
 
     calloc.free(options);
@@ -115,12 +124,42 @@ class Pty {
 
   late final Pointer<PtyHandle> _handle;
 
-  Stream<Uint8List> get stdout => _stdoutPort.cast();
+  /// The output stream from the pseudo-terminal. Note that pseudo-terminals
+  /// do not distinguish between stdout and stderr.
+  Stream<Uint8List> get output => _stdoutPort.cast();
 
+  /// A `Future` which completes with the exit code of the process
+  /// when the process completes.
+  ///
+  /// The handling of exit codes is platform specific.
+  ///
+  /// On Linux and OS X a normal exit code will be a positive value in
+  /// the range `[0..255]`. If the process was terminated due to a signal
+  /// the exit code will be a negative value in the range `[-255..-1]`,
+  /// where the absolute value of the exit code is the signal
+  /// number. For example, if a process crashes due to a segmentation
+  /// violation the exit code will be -11, as the signal SIGSEGV has the
+  /// number 11.
+  ///
+  /// On Windows a process can report any 32-bit value as an exit
+  /// code. When returning the exit code this exit code is turned into
+  /// a signed value. Some special values are used to report
+  /// termination due to some system event. E.g. if a process crashes
+  /// due to an access violation the 32-bit exit code is `0xc0000005`,
+  /// which will be returned as the negative number `-1073741819`. To
+  /// get the original 32-bit value use `(0x100000000 + exitCode) &
+  /// 0xffffffff`.
+  ///
+  /// There is no guarantee that [output] have finished reporting the buffered
+  /// output of the process when the returned future completes.
+  /// To be sure that all output is captured, wait for the done event on the
+  /// streams.
   Future<int> get exitCode => _exitPort.first.then((value) => value);
 
+  /// The process id of the process running in the pseudo-terminal.
   int get pid => _bindings.pty_getpid(_handle);
 
+  /// Write data to the pseudo-terminal.
   void write(Uint8List data) {
     final buf = malloc<Int8>(data.length);
     buf.asTypedList(data.length).setAll(0, data);
@@ -128,16 +167,22 @@ class Pty {
     malloc.free(buf);
   }
 
+  /// Resize the pseudo-terminal.
   void resize(int rows, int cols) {
     _bindings.pty_resize(_handle, rows, cols);
   }
 
+  /// Kill the process running in the pseudo-terminal.
+  ///
+  /// When possible, [signal] will be sent to the process. This includes
+  /// Linux and OS X. The default signal is [ProcessSignal.sigterm]
+  /// which will normally terminate the process.
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     return Process.killPid(pid, signal);
   }
 }
 
-String? getPtyError() {
+String? _getPtyError() {
   final error = _bindings.pty_error();
 
   if (error == nullptr) {

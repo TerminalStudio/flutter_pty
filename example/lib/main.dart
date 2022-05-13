@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
 
     pty = Pty.start(shell);
 
-    pty.stdout.cast<List<int>>().transform(const Utf8Decoder()).listen((text) {
+    pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((text) {
       ptyOutout.write(text);
       setState(() {});
     });

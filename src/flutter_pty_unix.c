@@ -77,6 +77,47 @@ static void start_read_thread(int fd, Dart_Port port)
     pthread_create(&_thread, NULL, &read_loop, options);
 }
 
+typedef struct WaitExitOptions
+{
+    int pid;
+
+    Dart_Port port;
+
+} WaitExitOptions;
+
+static void *wait_exit_thread(void *arg)
+{
+    WaitExitOptions *options = (WaitExitOptions *)arg;
+
+    int status;
+
+    waitpid(options->pid, &status, 0);
+
+    if (WIFEXITED(status))
+    {
+        Dart_PostInteger_DL(options->port, WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status))
+    {
+        Dart_PostInteger_DL(options->port, -WTERMSIG(status));
+    }
+
+    return NULL;
+}
+
+static void start_wait_exit_thread(int pid, Dart_Port port)
+{
+    WaitExitOptions *options = malloc(sizeof(WaitExitOptions));
+
+    options->pid = pid;
+
+    options->port = port;
+
+    pthread_t _thread;
+
+    pthread_create(&_thread, NULL, &wait_exit_thread, options);
+}
+
 static void set_environment(char **environment)
 {
     if (environment == NULL)
@@ -128,6 +169,8 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     handle->pid = pid;
 
     start_read_thread(ptm, options->stdout_port);
+
+    start_wait_exit_thread(pid, options->exit_port);
 
     return handle;
 }

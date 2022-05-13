@@ -8,7 +8,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-pid_t forkpty(
+pid_t pty_forkpty(
     int *master,
     int *slave,
     const struct termios *termp,

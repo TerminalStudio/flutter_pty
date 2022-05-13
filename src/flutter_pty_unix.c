@@ -120,7 +120,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     int ptm;
 
-    int pid = forkpty(&ptm, NULL, NULL, &ws);
+    int pid = pty_forkpty(&ptm, NULL, NULL, &ws);
 
     if (pid < 0)
     {

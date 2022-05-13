@@ -91,7 +91,6 @@ static void *read_loop(void *arg)
 
 static void start_read_thread(int fd, Dart_Port port)
 {
-
     ReadLoopOptions *options = malloc(sizeof(ReadLoopOptions));
 
     options->fd = fd;
@@ -105,8 +104,6 @@ static void start_read_thread(int fd, Dart_Port port)
 
 static void set_environment(char **environment)
 {
-    putenv("APPLE=pi");
-
     if (environment == NULL)
     {
         return;
@@ -114,7 +111,6 @@ static void set_environment(char **environment)
 
     while (*environment != NULL)
     {
-        printf("env: %s\n", *environment);
         putenv(*environment);
         environment++;
     }

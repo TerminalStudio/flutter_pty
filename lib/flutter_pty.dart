@@ -43,6 +43,7 @@ class Pty {
 
   /// Spawns a process in a pseudo-terminal. The arguments have the same meaning
   /// as in [Process.start].
+  /// [ackRead] indicates if the pty should wait for a call to [Pty.ackRead] before sending the next data.
   Pty.start(
     this.executable, {
     this.arguments = const [],
@@ -183,6 +184,9 @@ class Pty {
     return Process.killPid(pid, signal);
   }
 
+  /// indicates that a data chunk has been processed.
+  /// This is needed when ackRead is set to true as the pty will wait for this signal to happen
+  /// before any additional data is sent.
   void ackRead() {
     _bindings.pty_ack_read(_handle);
   }

@@ -50,6 +50,7 @@ class Pty {
     Map<String, String>? environment,
     int rows = 25,
     int columns = 80,
+    bool ackRead = false,
   }) {
     _ensureInitialized();
 
@@ -104,6 +105,7 @@ class Pty {
     options.ref.environment = envp.cast();
     options.ref.stdout_port = _stdoutPort.sendPort.nativePort;
     options.ref.exit_port = _exitPort.sendPort.nativePort;
+    options.ref.ackRead = ackRead ? 1 : 0;
 
     if (workingDirectory != null) {
       options.ref.working_directory = workingDirectory.toNativeUtf8().cast();
@@ -179,6 +181,10 @@ class Pty {
   /// which will normally terminate the process.
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     return Process.killPid(pid, signal);
+  }
+
+  void ackRead() {
+    _bindings.pty_ack_read(_handle);
   }
 }
 

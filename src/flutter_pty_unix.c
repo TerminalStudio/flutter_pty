@@ -47,10 +47,6 @@ static void *read_loop(void *arg)
 
     while (1)
     {
-        if(options->waitForReadAck)
-        {
-            pthread_mutex_lock(options->mutex);
-        }
         ssize_t n = read(options->fd, buffer, sizeof(buffer));
 
         if (n < 0)
@@ -71,6 +67,10 @@ static void *read_loop(void *arg)
         result.value.as_typed_data.values = (uint8_t *)buffer;
 
         Dart_PostCObject_DL(options->port, &result);
+        if(options->waitForReadAck)
+        {
+            pthread_mutex_lock(options->mutex);
+        }
     }
 
     return NULL;

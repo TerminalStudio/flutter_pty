@@ -47,6 +47,12 @@ static void *read_loop(void *arg)
 
     while (1)
     {
+        if(options->waitForReadAck)
+        {
+            // if we are in ack mode then we get a mutex here that is
+            // freed again once the chunk of data has been processed
+            pthread_mutex_lock(options->mutex);
+        }
         ssize_t n = read(options->fd, buffer, sizeof(buffer));
 
         if (n < 0)
@@ -67,10 +73,6 @@ static void *read_loop(void *arg)
         result.value.as_typed_data.values = (uint8_t *)buffer;
 
         Dart_PostCObject_DL(options->port, &result);
-        if(options->waitForReadAck)
-        {
-            pthread_mutex_lock(options->mutex);
-        }
     }
 
     return NULL;
@@ -202,6 +204,7 @@ FFI_PLUGIN_EXPORT void pty_ack_read(PtyHandle *handle)
 {
     if(handle->ackRead)
     {
+        // frees the mutex so that the next chunk of data can be read
         pthread_mutex_unlock( &handle->mutex );
     }
 }

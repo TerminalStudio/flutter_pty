@@ -156,6 +156,10 @@ typedef struct ReadLoopOptions
 
     Dart_Port port;
 
+    HANDLE hMutex;
+
+    BOOL ackRead;
+
 } ReadLoopOptions;
 
 static DWORD WINAPI read_loop(LPVOID arg)
@@ -167,6 +171,11 @@ static DWORD WINAPI read_loop(LPVOID arg)
     while (1)
     {
         DWORD readlen = 0;
+
+        if (options->ackRead)
+        {
+            WaitForSingleObject(options->hMutex, INFINITE);
+        }
 
         BOOL ok = ReadFile(options->fd, buffer, sizeof(buffer), &readlen, NULL);
 
@@ -192,12 +201,14 @@ static DWORD WINAPI read_loop(LPVOID arg)
     return 0;
 }
 
-static void start_read_thread(HANDLE fd, Dart_Port port)
+static void start_read_thread(HANDLE fd, Dart_Port port, HANDLE mutex, BOOL ackRead)
 {
     ReadLoopOptions *options = malloc(sizeof(ReadLoopOptions));
 
     options->fd = fd;
     options->port = port;
+    options->hMutex = mutex;
+    options->ackRead = ackRead;
 
     DWORD thread_id;
 
@@ -215,6 +226,7 @@ typedef struct WaitExitOptions
 
     Dart_Port port;
 
+    HANDLE hMutex;
 } WaitExitOptions;
 
 static DWORD WINAPI wait_exit_thread(LPVOID arg)
@@ -228,18 +240,20 @@ static DWORD WINAPI wait_exit_thread(LPVOID arg)
     GetExitCodeProcess(options->pid, &exit_code);
 
     CloseHandle(options->pid);
+    CloseHandle(options->hMutex);
 
     Dart_PostInteger_DL(options->port, exit_code);
 
     return 0;
 }
 
-static void start_wait_exit_thread(HANDLE pid, Dart_Port port)
+static void start_wait_exit_thread(HANDLE pid, Dart_Port port, HANDLE mutex)
 {
     WaitExitOptions *options = malloc(sizeof(WaitExitOptions));
 
     options->pid = pid;
     options->port = port;
+    options->hMutex = mutex;
 
     DWORD thread_id;
 
@@ -260,6 +274,10 @@ typedef struct PtyHandle
     HPCON hPty;
 
     HANDLE hProcess;
+
+    BOOL ackRead;
+
+    HANDLE hMutex;
 
 } PtyHandle;
 
@@ -386,9 +404,11 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     // CloseHandle(processInfo.hThread);
 
-    start_read_thread(outputReadSide, options->stdout_port);
+    HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
 
-    start_wait_exit_thread(processInfo.hProcess, options->exit_port);
+    start_read_thread(outputReadSide, options->stdout_port, mutex, options->ackRead);
+
+    start_wait_exit_thread(processInfo.hProcess, options->exit_port, mutex);
 
     PtyHandle *pty = malloc(sizeof(PtyHandle));
 
@@ -402,6 +422,8 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     pty->outputReadSide = outputReadSide;
     pty->hPty = hPty;
     pty->hProcess = processInfo.hProcess;
+    pty->ackRead = options->ackRead;
+    pty->hMutex = mutex;
 
     return pty;
 }
@@ -415,6 +437,14 @@ FFI_PLUGIN_EXPORT void pty_write(PtyHandle *handle, char *buffer, int length)
     FlushFileBuffers(handle->inputWriteSide);
 
     return;
+}
+
+FFI_PLUGIN_EXPORT void pty_ack_read(PtyHandle *handle)
+{
+    if (handle->ackRead)
+    {
+        ReleaseMutex(handle->hMutex);
+    }
 }
 
 FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols)

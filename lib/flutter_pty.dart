@@ -43,6 +43,7 @@ class Pty {
 
   /// Spawns a process in a pseudo-terminal. The arguments have the same meaning
   /// as in [Process.start].
+  /// [ackRead] indicates if the pty should wait for a call to [Pty.ackRead] before sending the next data.
   Pty.start(
     this.executable, {
     this.arguments = const [],
@@ -50,6 +51,7 @@ class Pty {
     Map<String, String>? environment,
     int rows = 25,
     int columns = 80,
+    bool ackRead = false,
   }) {
     _ensureInitialized();
 
@@ -104,6 +106,7 @@ class Pty {
     options.ref.environment = envp.cast();
     options.ref.stdout_port = _stdoutPort.sendPort.nativePort;
     options.ref.exit_port = _exitPort.sendPort.nativePort;
+    options.ref.ackRead = ackRead ? 1 : 0;
 
     if (workingDirectory != null) {
       options.ref.working_directory = workingDirectory.toNativeUtf8().cast();
@@ -179,6 +182,13 @@ class Pty {
   /// which will normally terminate the process.
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     return Process.killPid(pid, signal);
+  }
+
+  /// indicates that a data chunk has been processed.
+  /// This is needed when ackRead is set to true as the pty will wait for this signal to happen
+  /// before any additional data is sent.
+  void ackRead() {
+    _bindings.pty_ack_read(_handle);
   }
 }
 

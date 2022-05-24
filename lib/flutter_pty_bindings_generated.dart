@@ -405,6 +405,20 @@ class FlutterPtyBindings {
   late final _pty_write = _pty_writePtr.asFunction<
       void Function(ffi.Pointer<PtyHandle>, ffi.Pointer<ffi.Int8>, int)>();
 
+  void pty_ack_read(
+    ffi.Pointer<PtyHandle> handle,
+  ) {
+    return _pty_ack_read(
+      handle,
+    );
+  }
+
+  late final _pty_ack_readPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<PtyHandle>)>>(
+          'pty_ack_read');
+  late final _pty_ack_read =
+      _pty_ack_readPtr.asFunction<void Function(ffi.Pointer<PtyHandle>)>();
+
   int pty_resize(
     ffi.Pointer<PtyHandle> handle,
     int rows,
@@ -734,6 +748,9 @@ class PtyOptions extends ffi.Struct {
 
   @Dart_Port()
   external int exit_port;
+
+  @ffi.Uint8()
+  external int ackRead;
 }
 
 class PtyHandle extends ffi.Opaque {}

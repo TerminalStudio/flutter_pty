@@ -14,9 +14,11 @@ dependencies:
   ffi: ^1.2.0-dev.0
 
 dev_dependencies:
-  ffigen: ^4.1.2
   flutter_test:
     sdk: flutter
+
+  ffigen: ^4.1.2
+
   flutter_lints: ^1.0.0
 
 # For information on the generic Dart part of this file, see the

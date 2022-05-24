@@ -1,5 +1,9 @@
 # flutter_pty
 
+[![Flutter](https://github.com/TerminalStudio/flutter_pty/actions/workflows/flutter.yml/badge.svg)](https://github.com/TerminalStudio/flutter_pty/actions/workflows/flutter.yml)
+[![pub points](https://badges.bar/flutter_pty/pub%20points)](https://pub.dev/packages/flutter_pty)
+
+
 This is an experimental package to explore the possibilities of using native
 code to implement PTY instead of pure FFI and blocking isolates. It's expected to be
 more stable than the current implementation ([pty](https://pub.dev/packages/pty)).

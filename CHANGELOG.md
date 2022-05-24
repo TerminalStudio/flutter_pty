@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Add optional read acknowledge [#2], thanks [@devmil].
+
 ## 0.1.1
 
 * Update README
@@ -33,3 +37,7 @@
 ## 0.0.1
 
 * Initial release
+
+[#2]: https://github.com/TerminalStudio/flutter_pty/pull/2
+
+[@devmil]: https://github.com/devmil

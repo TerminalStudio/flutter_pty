@@ -34,4 +34,5 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
+        working-directory: ./example
         run: flutter test integration_test

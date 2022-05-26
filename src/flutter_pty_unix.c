@@ -31,7 +31,7 @@ typedef struct ReadLoopOptions
 {
     int fd;
 
-    pthread_mutex_t* mutex;
+    pthread_mutex_t *mutex;
 
     Dart_Port port;
 
@@ -47,7 +47,7 @@ static void *read_loop(void *arg)
 
     while (1)
     {
-        if(options->waitForReadAck)
+        if (options->waitForReadAck)
         {
             // if we are in ack mode then we get a mutex here that is
             // freed again once the chunk of data has been processed
@@ -78,14 +78,14 @@ static void *read_loop(void *arg)
     return NULL;
 }
 
-static void start_read_thread(int fd, Dart_Port port, pthread_mutex_t* mutex, bool waitForReadAck)
+static void start_read_thread(int fd, Dart_Port port, pthread_mutex_t *mutex, bool waitForReadAck)
 {
     ReadLoopOptions *options = malloc(sizeof(ReadLoopOptions));
 
     options->fd = fd;
 
     options->port = port;
-    
+
     options->mutex = mutex;
 
     options->waitForReadAck = waitForReadAck;
@@ -171,6 +171,11 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     {
         set_environment(options->environment);
 
+        if (strlen(options->working_directory))
+        {
+            chdir(options->working_directory);
+        }
+
         int ok = execvp(options->executable, options->arguments);
 
         if (ok < 0)
@@ -185,7 +190,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     handle->ptm = ptm;
     handle->pid = pid;
-    pthread_mutex_init( &handle->mutex, NULL );
+    pthread_mutex_init(&handle->mutex, NULL);
     handle->ackRead = options->ackRead;
 
     start_read_thread(ptm, options->stdout_port, &handle->mutex, options->ackRead);
@@ -202,10 +207,10 @@ FFI_PLUGIN_EXPORT void pty_write(PtyHandle *handle, char *buffer, int length)
 
 FFI_PLUGIN_EXPORT void pty_ack_read(PtyHandle *handle)
 {
-    if(handle->ackRead)
+    if (handle->ackRead)
     {
         // frees the mutex so that the next chunk of data can be read
-        pthread_mutex_unlock( &handle->mutex );
+        pthread_mutex_unlock(&handle->mutex);
     }
 }
 

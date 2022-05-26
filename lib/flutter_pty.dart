@@ -110,6 +110,8 @@ class Pty {
 
     if (workingDirectory != null) {
       options.ref.working_directory = workingDirectory.toNativeUtf8().cast();
+    } else {
+      options.ref.working_directory = nullptr;
     }
 
     _handle = _bindings.pty_create(options);

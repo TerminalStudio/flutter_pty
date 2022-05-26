@@ -171,7 +171,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     {
         set_environment(options->environment);
 
-        if (strlen(options->working_directory))
+        if (options->working_directory != NULL && strlen(options->working_directory) > 0)
         {
             chdir(options->working_directory);
         }

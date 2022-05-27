@@ -14,7 +14,7 @@ pid_t pty_forkpty(
     const struct termios *termp,
     const struct winsize *winp)
 {
-    int ptm = open("/dev/ptmx", O_NOCTTY | O_RDWR);
+    int ptm = open("/dev/ptmx", O_RDWR | O_NOCTTY);
 
     if (ptm < 0)
     {
@@ -35,7 +35,7 @@ pid_t pty_forkpty(
         return -1;
     }
 
-    int pts = open(devname, O_RDWR);
+    int pts = open(devname, O_RDWR | O_NOCTTY);
     if (pts < 0)
     {
         return -1;

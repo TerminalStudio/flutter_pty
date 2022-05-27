@@ -43,6 +43,12 @@ class OutputCollector {
   String get output => buffer.toString();
 
   late final done = subscription.asFuture();
+
+  Future<void> waitForFirstChunk() async {
+    while (buffer.isEmpty) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
 }
 
 void main() {
@@ -97,15 +103,15 @@ void main() {
     final pty = Pty.start(shell, ackRead: true);
 
     final collector = OutputCollector(pty);
-    await Future.delayed(const Duration(milliseconds: 200));
+    await collector.waitForFirstChunk();
     expect(collector.output, isNotEmpty);
 
     pty.write('echo some text\n'.toUtf8());
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 100));
     expect(collector.output.contains('some text'), isFalse);
 
     pty.ackRead();
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 100));
     expect(collector.output.contains('some text'), isTrue);
 
     pty.kill();

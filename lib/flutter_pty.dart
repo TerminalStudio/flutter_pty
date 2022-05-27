@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -116,16 +117,20 @@ class Pty {
 
     _handle = _bindings.pty_create(options);
 
+    calloc.free(options);
+
     if (_handle == nullptr) {
       throw StateError('Failed to create PTY: ${_getPtyError()}');
     }
 
-    calloc.free(options);
+    _exitPort.first.then(_onExitCode);
   }
 
   final _stdoutPort = ReceivePort();
 
   final _exitPort = ReceivePort();
+
+  final _exitCodeCompleter = Completer<int>();
 
   late final Pointer<PtyHandle> _handle;
 
@@ -159,7 +164,7 @@ class Pty {
   /// output of the process when the returned future completes.
   /// To be sure that all output is captured, wait for the done event on the
   /// streams.
-  Future<int> get exitCode => _exitPort.first.then((value) => value);
+  Future<int> get exitCode => _exitCodeCompleter.future;
 
   /// The process id of the process running in the pseudo-terminal.
   int get pid => _bindings.pty_getpid(_handle);
@@ -191,6 +196,12 @@ class Pty {
   /// before any additional data is sent.
   void ackRead() {
     _bindings.pty_ack_read(_handle);
+  }
+
+  void _onExitCode(dynamic exitCode) {
+    _stdoutPort.close();
+    _exitPort.close();
+    _exitCodeCompleter.complete(exitCode);
   }
 }
 

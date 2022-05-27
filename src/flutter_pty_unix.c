@@ -39,6 +39,8 @@ typedef struct ReadLoopOptions
 
 } ReadLoopOptions;
 
+char *error_message = NULL;
+
 static void *read_loop(void *arg)
 {
     ReadLoopOptions *options = (ReadLoopOptions *)arg;
@@ -163,7 +165,8 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     if (pid < 0)
     {
-        // TODO: handle error
+        error_message = "pty_forkpty failed";
+        perror("pty_forkpty");
         return NULL;
     }
 
@@ -183,8 +186,6 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
             perror("execvp");
         }
     }
-
-    setsid();
 
     PtyHandle *handle = (PtyHandle *)malloc(sizeof(PtyHandle));
 

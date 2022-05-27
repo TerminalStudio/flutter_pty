@@ -97,14 +97,15 @@ void main() {
     final pty = Pty.start(shell, ackRead: true);
 
     final collector = OutputCollector(pty);
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 200));
+    expect(collector.output, isNotEmpty);
 
     pty.write('echo some text\n'.toUtf8());
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 200));
     expect(collector.output.contains('some text'), isFalse);
 
     pty.ackRead();
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 200));
     expect(collector.output.contains('some text'), isTrue);
 
     pty.kill();

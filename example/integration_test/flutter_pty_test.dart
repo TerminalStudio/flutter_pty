@@ -110,6 +110,28 @@ void main() {
     pty.kill();
   });
 
+  test('Pty.start can set multiple environment variables', () async {
+    final pty = Pty.start(
+      shell,
+      environment: {
+        'TEST_ENV1': 'test1',
+        'TEST_ENV2': 'test2',
+      },
+    );
+
+    if (Platform.isWindows) {
+      pty.write('echo %TEST_ENV1% %TEST_ENV2%$nl'.toUtf8());
+    } else {
+      pty.write('echo \$TEST_ENV1 \$TEST_ENV2$nl'.toUtf8());
+    }
+
+    final collector = OutputCollector(pty);
+
+    await collector.waitForOutput('test1 test2');
+
+    pty.kill();
+  });
+
   test('Pty.start can set ack read mode', () async {
     final pty = Pty.start(
       shell,

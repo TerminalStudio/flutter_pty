@@ -26,6 +26,8 @@ extension StringToUtf8 on String {
   }
 }
 
+final nl = Platform.isWindows ? '\r\n' : '\n';
+
 class OutputCollector {
   final Pty pty;
 
@@ -81,42 +83,50 @@ void main() {
     final pty = Pty.start(shell, workingDirectory: tempDir.path);
 
     if (Platform.isWindows) {
-      pty.write('cd\n'.toUtf8());
+      pty.write('cd$nl'.toUtf8());
     } else {
-      pty.write('pwd\n'.toUtf8());
+      pty.write('pwd$nl'.toUtf8());
     }
 
-    pty.write('echo ---  done  ---\n'.toUtf8());
-
     final collector = OutputCollector(pty);
-    await collector.waitForOutput('--- done ---');
-
-    expect(collector.output, contains(tempDir.path));
+    await collector.waitForOutput(tempDir.path);
 
     pty.kill();
   });
 
   test('Pty.start can set environment variables', () async {
     final pty = Pty.start(shell, environment: {'TEST_ENV': 'test'});
-    pty.write('echo \$TEST_ENV\n'.toUtf8());
-    pty.write('echo ---  done  ---\n'.toUtf8());
+
+    if (Platform.isWindows) {
+      pty.write('echo %TEST_ENV%$nl'.toUtf8());
+    } else {
+      pty.write('echo \$TEST_ENV$nl'.toUtf8());
+    }
 
     final collector = OutputCollector(pty);
-    await collector.waitForOutput('--- done ---');
 
-    expect(collector.output, contains('test'));
+    await collector.waitForOutput('test');
 
     pty.kill();
   });
 
   test('Pty.start can set ack read mode', () async {
-    final pty = Pty.start(shell, ackRead: true);
+    final pty = Pty.start(
+      shell,
+      ackRead: true,
+      environment: {'TEST_ENV': 'some random text'},
+    );
 
     final collector = OutputCollector(pty);
     await collector.waitForFirstChunk();
     expect(collector.output, isNotEmpty);
 
-    pty.write('echo some  random  text\n'.toUtf8());
+    if (Platform.isWindows) {
+      pty.write('echo %TEST_ENV%$nl'.toUtf8());
+    } else {
+      pty.write('echo \$TEST_ENV$nl'.toUtf8());
+    }
+
     await Future.delayed(const Duration(milliseconds: 100));
     expect(collector.output.contains('some random text'), isFalse);
 

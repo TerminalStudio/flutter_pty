@@ -83,7 +83,7 @@ static LPWSTR build_environment(char **environment)
 
         while (environment[i] != NULL)
         {
-            environment_block_length += (int)strlen(environment[i]);
+            environment_block_length += (int)strlen(environment[i]) + 1;
             i++;
         }
     }
@@ -109,6 +109,8 @@ static LPWSTR build_environment(char **environment)
                     k++;
                 }
 
+                environment_block[i++] = 0;
+
                 j++;
             }
         }
@@ -121,8 +123,6 @@ static LPWSTR build_environment(char **environment)
 
 static LPWSTR build_working_directory(char *working_directory)
 {
-    LPWSTR working_directory_block = NULL;
-
     if (working_directory == NULL)
     {
         return NULL;
@@ -130,7 +130,7 @@ static LPWSTR build_working_directory(char *working_directory)
 
     int working_directory_length = (int)strlen(working_directory);
 
-    working_directory_block = malloc((working_directory_length + 1) * sizeof(WCHAR));
+    LPWSTR working_directory_block = malloc((working_directory_length + 1) * sizeof(WCHAR));
 
     if (working_directory_block == NULL)
     {
@@ -139,10 +139,9 @@ static LPWSTR build_working_directory(char *working_directory)
 
     int i = 0;
 
-    while (working_directory_block[i] != 0)
+    while (working_directory[i] != 0)
     {
-        working_directory_block[i] = (WCHAR)working_directory_block[i];
-        i++;
+        working_directory_block[i] = (WCHAR)working_directory[i++];
     }
 
     working_directory_block[i] = 0;
@@ -273,7 +272,7 @@ typedef struct PtyHandle
 
     HPCON hPty;
 
-    HANDLE hProcess;
+    DWORD dwProcessId;
 
     BOOL ackRead;
 
@@ -371,9 +370,8 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
                         NULL,
                         FALSE,
                         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT,
-                        // options->environment,
-                        NULL,
-                        NULL,
+                        environment_block,
+                        working_directory,
                         &startupInfo.StartupInfo,
                         &processInfo);
 
@@ -404,7 +402,11 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     // CloseHandle(processInfo.hThread);
 
-    HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
+    HANDLE mutex = CreateSemaphore(
+        NULL, // default security attributes
+        1,    // initial count
+        1,    // maximum count
+        NULL);
 
     start_read_thread(outputReadSide, options->stdout_port, mutex, options->ackRead);
 
@@ -421,7 +423,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     pty->inputWriteSide = inputWriteSide;
     pty->outputReadSide = outputReadSide;
     pty->hPty = hPty;
-    pty->hProcess = processInfo.hProcess;
+    pty->dwProcessId = processInfo.dwProcessId;
     pty->ackRead = options->ackRead;
     pty->hMutex = mutex;
 
@@ -443,7 +445,7 @@ FFI_PLUGIN_EXPORT void pty_ack_read(PtyHandle *handle)
 {
     if (handle->ackRead)
     {
-        ReleaseMutex(handle->hMutex);
+        ReleaseSemaphore(handle->hMutex, 1, NULL);
     }
 }
 
@@ -455,6 +457,11 @@ FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols)
     size.Y = rows;
 
     return ResizePseudoConsole(handle->hPty, size);
+}
+
+FFI_PLUGIN_EXPORT int pty_getpid(PtyHandle *handle)
+{
+    return (int)handle->dwProcessId;
 }
 
 FFI_PLUGIN_EXPORT char *pty_error()

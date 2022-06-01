@@ -86,10 +86,10 @@ void main() {
       pty.write('pwd\n'.toUtf8());
     }
 
-    pty.write('echo done\n'.toUtf8());
+    pty.write('echo ---  done  ---\n'.toUtf8());
 
     final collector = OutputCollector(pty);
-    await collector.waitForOutput('done');
+    await collector.waitForOutput('--- done ---');
 
     expect(collector.output, contains(tempDir.path));
 
@@ -99,10 +99,10 @@ void main() {
   test('Pty.start can set environment variables', () async {
     final pty = Pty.start(shell, environment: {'TEST_ENV': 'test'});
     pty.write('echo \$TEST_ENV\n'.toUtf8());
-    pty.write('echo done\n'.toUtf8());
+    pty.write('echo ---  done  ---\n'.toUtf8());
 
     final collector = OutputCollector(pty);
-    await collector.waitForOutput('done');
+    await collector.waitForOutput('--- done ---');
 
     expect(collector.output, contains('test'));
 
@@ -116,13 +116,13 @@ void main() {
     await collector.waitForFirstChunk();
     expect(collector.output, isNotEmpty);
 
-    pty.write('echo some text\n'.toUtf8());
+    pty.write('echo some  random  text\n'.toUtf8());
     await Future.delayed(const Duration(milliseconds: 100));
-    expect(collector.output.contains('some text'), isFalse);
+    expect(collector.output.contains('some random text'), isFalse);
 
     pty.ackRead();
     await Future.delayed(const Duration(milliseconds: 100));
-    expect(collector.output.contains('some text'), isTrue);
+    expect(collector.output.contains('some random text'), isTrue);
 
     pty.kill();
   });

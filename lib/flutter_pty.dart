@@ -5,7 +5,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter_pty/flutter_pty_bindings_generated.dart';
+import 'package:flutter_pty/src/flutter_pty_bindings_generated.dart';
 
 const _libName = 'flutter_pty';
 

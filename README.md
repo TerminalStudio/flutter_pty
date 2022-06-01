@@ -1,6 +1,6 @@
 # flutter_pty
 
-[![Flutter](https://github.com/TerminalStudio/flutter_pty/actions/workflows/flutter.yml/badge.svg)](https://github.com/TerminalStudio/flutter_pty/actions/workflows/flutter.yml)
+[![ci](https://github.com/TerminalStudio/flutter_pty/actions/workflows/ci.yml/badge.svg)](https://github.com/TerminalStudio/flutter_pty/actions/workflows/ci.yml)
 [![pub points](https://badges.bar/flutter_pty/pub%20points)](https://pub.dev/packages/flutter_pty)
 
 

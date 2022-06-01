@@ -1,3 +1,8 @@
+## 0.3.0
+
+* Fixes ignored working directory parameter for Unix [#3], thanks [@devmil].
+* Support setting Windows environmental variable and working directory.
+
 ## 0.2.0
 
 * Add optional read acknowledge [#2], thanks [@devmil].
@@ -39,5 +44,6 @@
 * Initial release
 
 [#2]: https://github.com/TerminalStudio/flutter_pty/pull/2
+[#3]: https://github.com/TerminalStudio/flutter_pty/pull/3
 
 [@devmil]: https://github.com/devmil

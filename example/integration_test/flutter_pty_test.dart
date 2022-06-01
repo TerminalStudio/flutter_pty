@@ -49,6 +49,12 @@ class OutputCollector {
       await Future.delayed(const Duration(milliseconds: 100));
     }
   }
+
+  Future<void> waitForOutput(Pattern pattern) async {
+    while (pattern.allMatches(output).isEmpty) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
 }
 
 void main() {
@@ -80,23 +86,27 @@ void main() {
       pty.write('pwd\n'.toUtf8());
     }
 
-    pty.write('exit\n'.toUtf8());
+    pty.write('echo done\n'.toUtf8());
 
     final collector = OutputCollector(pty);
-    await collector.done;
+    await collector.waitForOutput('done');
 
     expect(collector.output, contains(tempDir.path));
+
+    pty.kill();
   });
 
   test('Pty.start can set environment variables', () async {
     final pty = Pty.start(shell, environment: {'TEST_ENV': 'test'});
     pty.write('echo \$TEST_ENV\n'.toUtf8());
-    pty.write('exit\n'.toUtf8());
+    pty.write('echo done\n'.toUtf8());
 
     final collector = OutputCollector(pty);
-    await collector.done;
+    await collector.waitForOutput('done');
 
     expect(collector.output, contains('test'));
+
+    pty.kill();
   });
 
   test('Pty.start can set ack read mode', () async {

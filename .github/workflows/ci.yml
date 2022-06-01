@@ -1,4 +1,4 @@
-name: tests
+name: ci
 
 on:
   push:
@@ -20,6 +20,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.sdk }}
+          cache: true
+          cache-key: flutter # optional, change this to force refresh cache
+          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+          architecture: x64 # optional, x64 or arm64
 
       - name: Print Flutter SDK version
         run: flutter --version

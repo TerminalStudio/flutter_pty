@@ -1,3 +1,6 @@
+## 0.3.1
+* Update deps
+
 ## 0.3.0
 
 * Fixes ignored working directory parameter for Unix [#3], thanks [@devmil].

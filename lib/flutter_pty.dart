@@ -107,7 +107,7 @@ class Pty {
     options.ref.environment = envp.cast();
     options.ref.stdout_port = _stdoutPort.sendPort.nativePort;
     options.ref.exit_port = _exitPort.sendPort.nativePort;
-    options.ref.ackRead = ackRead ? 1 : 0;
+    options.ref.ackRead = ackRead;
 
     if (workingDirectory != null) {
       options.ref.working_directory = workingDirectory.toNativeUtf8().cast();
@@ -173,7 +173,7 @@ class Pty {
   void write(Uint8List data) {
     final buf = malloc<Int8>(data.length);
     buf.asTypedList(data.length).setAll(0, data);
-    _bindings.pty_write(_handle, buf, data.length);
+    _bindings.pty_write(_handle, buf.cast(), data.length);
     malloc.free(buf);
   }
 

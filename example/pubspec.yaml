@@ -30,8 +30,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_acrylic: ^1.0.0+2
-
   xterm: ^3.0.6-alpha
 
   flutter_pty:

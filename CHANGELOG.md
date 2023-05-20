@@ -1,3 +1,6 @@
+## 0.4.0
+* Update to Dart3
+
 ## 0.3.1
 * Update deps
 

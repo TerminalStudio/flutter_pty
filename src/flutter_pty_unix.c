@@ -230,7 +230,7 @@ FFI_PLUGIN_EXPORT int pty_getpid(PtyHandle *handle)
     return handle->pid;
 }
 
-FFI_PLUGIN_EXPORT char *pty_error()
+FFI_PLUGIN_EXPORT char *pty_error(void)
 {
     return NULL;
 }

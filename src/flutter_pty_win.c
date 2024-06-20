@@ -86,9 +86,9 @@ static LPWSTR build_environment(char **environment)
             environment_block_length += (int)strlen(environment[i]) + 1;
             i++;
         }
+        
+        environment_block = malloc((environment_block_length + 1) * sizeof(WCHAR));
     }
-
-    environment_block = malloc((environment_block_length + 1) * sizeof(WCHAR));
 
     if (environment_block != NULL)
     {
@@ -362,7 +362,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&processInfo, sizeof(processInfo));
 
-    Sleep(1000);
+    // Sleep(1000);
 
     ok = CreateProcessW(NULL,
                         command,

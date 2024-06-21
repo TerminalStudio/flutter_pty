@@ -86,7 +86,7 @@ static LPWSTR build_environment(char **environment)
             environment_block_length += (int)strlen(environment[i]) + 1;
             i++;
         }
-        
+
         environment_block = malloc((environment_block_length + 1) * sizeof(WCHAR));
     }
 
@@ -317,7 +317,7 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
         return NULL;
     }
 
-    STARTUPINFOEX startupInfo;
+    STARTUPINFOEXW startupInfo;
 
     ZeroMemory(&startupInfo, sizeof(startupInfo));
     startupInfo.StartupInfo.cb = sizeof(startupInfo);
@@ -361,7 +361,33 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&processInfo, sizeof(processInfo));
+    // merge parent environment
+    if (environment_block != NULL)
+    {
+        LPWSTR temp = environment_block;
+        environment_block = NULL;
+        LPWSTR parentEnvBlock = GetEnvironmentStringsW();
+        int parent_envBlock_size = 0;
+        LPWSTR env = parentEnvBlock;
+        while (*env) 
+        {
+            parent_envBlock_size += wcslen(env) + 1;
+            env += wcslen(env) + 1;
+        }
+        int new_env_size = 0;
+        LPWSTR new_env = temp;
+        while (*new_env) 
+        {
+            new_env_size += wcslen(new_env) + 1;
+            new_env += wcslen(new_env) + 1;
+        }
+        int _malloc_size = sizeof(WCHAR) * (parent_envBlock_size + new_env_size + 1);
+        environment_block = malloc(_malloc_size);
+        memset(environment_block, 0, _malloc_size);
 
+        memcpy(environment_block, parentEnvBlock, sizeof(WCHAR) * parent_envBlock_size);
+        memcpy(environment_block + parent_envBlock_size, temp, sizeof(WCHAR) * new_env_size);
+    }
     // Sleep(1000);
 
     ok = CreateProcessW(NULL,

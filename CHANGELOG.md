@@ -1,3 +1,6 @@
+## 0.4.1
+* Fix compile warning, thanks [@mengyanshou].
+
 ## 0.4.0
 * Update to Dart3
 
@@ -53,3 +56,4 @@
 [#3]: https://github.com/TerminalStudio/flutter_pty/pull/3
 
 [@devmil]: https://github.com/devmil
+[@mengyanshou]: https://github.com/mengyanshou

@@ -1,3 +1,6 @@
+## 0.4.2
+* Fix Linux compile error, thanks [@mengyanshou].
+
 ## 0.4.1
 * Fix compile warning, thanks [@mengyanshou].
 
